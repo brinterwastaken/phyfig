@@ -1,0 +1,46 @@
+/*
+
+This CSS file will be included with your plugin, and
+available in the app when your plugin is enabled.
+
+If your plugin does not need CSS, delete this file.
+
+*/
+
+.phyfig-diagram {
+	padding: var(--unit-length);
+    border: 1px solid var(--background-modifier-border);
+	box-sizing: content-box;
+    border-radius: 4px;
+	position: relative;
+	height: var(--height);
+	overflow-y: auto;
+	font-family: var(--font-monospace-default);
+	margin-block: 0.5rem;
+}
+.markdown-reading-view .phyfig-diagram {
+	overflow: hidden;
+	border: none;
+	padding: calc(var(--unit-length)/2);
+}
+
+.phyfig-dotgrid {
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: calc(var(--unit-length)/2);
+	padding-right: calc(var(--unit-length)/2 - 0.125rem);
+	box-sizing: content-box;
+	display: grid;
+	align-items: center;
+	justify-items: center;
+}
+.markdown-reading-view .phyfig-dotgrid {
+	margin: 0;
+}
+
+.phyfig-dot {
+	height: 0.125rem;
+	width: 0.125rem;
+	background: var(--background-modifier-border);
+}

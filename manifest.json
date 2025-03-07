@@ -1,0 +1,10 @@
+{
+    "id": "phyfig",
+    "name": "PhyFig",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "Create physics diagrams using code blocks",
+    "author": "Trinethr",
+    "authorUrl": "https://brin.is-a.dev/",
+    "isDesktopOnly": true
+}
