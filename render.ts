@@ -17,7 +17,6 @@ export function renderDiagram(spec: DiagramSpec, container: HTMLElement, setting
 
 	const canvas = createCanvas(container, spec.scale);
 
-	console.log(spec.items)
 	for (const point of spec.items['Points']) {
 		drawPoint(canvas, point);
 	}

@@ -35,7 +35,6 @@ If your plugin does not need CSS, delete this file.
 	display: grid;
 	align-items: center;
 	justify-items: center;
-	z-index: -1;
 }
 .markdown-reading-view .phyfig-dotgrid {
 	margin: 0;
