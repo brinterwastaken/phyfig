@@ -1,9 +1,10 @@
-import { DiagramSpec, Point } from "./types/diagramSpec";
+import { DiagramSpec, Point, Line } from "./types/diagramSpec";
 
 export function parseDiagramSpec(source: string): DiagramSpec {
 	// object to store items used
 	let items: any = {
 		Points: [] as Point[],
+		Lines: [] as Line[],
 	};
 
 	// remove all empty lines
@@ -31,7 +32,9 @@ export function parseDiagramSpec(source: string): DiagramSpec {
 			if (currentLine.length == 2) {
 				const currentItem = parseItem(
 					currentLine as [string, string],
-					scaleXY
+					lineNum,
+					scaleXY,
+					items
 				);
 				if (currentItem) {
 					items[currentItem.type + "s"].push(currentItem.item);
@@ -51,12 +54,13 @@ export function parseDiagramSpec(source: string): DiagramSpec {
 	};
 }
 
-function parseItem(line: [string, string], scale: number[] | undefined) {
+function parseItem(textLine: [string, string], lineNum:number, scale: number[] | undefined, parsedItems: any) {
 	const pointPattern = /^\((-?\d*\.?\d+),(-?\d*\.?\d+)\)/;
+	const linePattern = /^Line\(([A-Za-z]+|\(-?\d*\.?\d+,-?\d*\.?\d+\)),([A-Za-z]+|\(-?\d*\.?\d+,-?\d*\.?\d+\))\)/;
 	// check if line[1] is a point
-	if (pointPattern.test(line[1])) {
+	if (pointPattern.test(textLine[1])) {
 		// parse point
-		let point = line[1].match(pointPattern);
+		let point = textLine[1].match(pointPattern);
 		if (point) {
 			let x = Number(point[1]);
 			let y = Number(point[2]);
@@ -64,17 +68,78 @@ function parseItem(line: [string, string], scale: number[] | undefined) {
 			if (scale && scale.length == 2) {
 				if (x > scale[0] || y > scale[1]) {
 					throw new Error(
-						`Point ${line[0]} = ${line[1]} is out of scale.`
+						`Point ${textLine[0]} = ${textLine[1]} is out of scale.`
 					);
 				} else {
 					return {
 						type: "Point",
-						item: {name: line[0], x: x, y: y}
+						item: {name: textLine[0], x: x, y: y}
 					};
 				}
 			} else {
 				throw new Error(`No scale specified.`);
 			}
 		}
+	} else if (linePattern.test(textLine[1])) {
+		// parse line
+		let line = textLine[1].match(linePattern);
+		let startPoint:Point|null = null;
+		let endPoint:Point|null = null;
+		if (line) {
+			let start = line[1];
+			let end = line[2];
+			if (pointPattern.test(start)) {
+				// parse start point
+				let point = start.match(pointPattern);
+				if (point) {
+					let startX = Number(point[1]);
+					let startY = Number(point[2]);
+					if (scale && scale.length == 2) {
+						if (startX > scale[0] || startY > scale[1]) {
+							throw new Error(
+								`Point ${textLine[0]} = ${textLine[1]} is out of scale.`
+							);
+						} else {
+							startPoint = {name: start, x: startX, y: startY};
+						}
+					} else {
+						throw new Error(`No scale specified.`);
+					}
+				}
+			} else if (parsedItems.Points.some((pt:Point) => pt.name == start)) {
+				startPoint = parsedItems.Points.find((pt:Point) => pt.name == start);
+			} else {
+				throw new Error(`Invalid starting point ${start}.`);
+			}
+			if (pointPattern.test(end)) {
+				// parse end point
+				let point = end.match(pointPattern);
+				if (point) {
+					let endX = Number(point[1]);
+					let endY = Number(point[2]);
+					if (scale && scale.length == 2) {
+						if (endX > scale[0] || endY > scale[1]) {
+							throw new Error(
+								`Point ${textLine[0]} = ${textLine[1]} is out of scale.`
+							);
+						} else {
+							endPoint = {name: end, x: endX, y: endY};
+						}
+					} else {
+						throw new Error(`No scale specified.`);
+					}
+				}
+			} else if (parsedItems.Points.some((point:Point) => point.name == end)) {
+				endPoint = parsedItems.Points.find((pt:Point) => pt.name == end)
+			} else {
+				throw new Error(`Invalid endpoint ${end}.`);
+			}
+			if (startPoint && endPoint) return {
+				type: "Line",
+				item: {name: textLine[0], start: startPoint, end: endPoint}
+			};
+		}
+	} else {
+		throw new Error(`Syntax Error at line ${lineNum}: ${textLine[1]}`);
 	}
 }

@@ -20,6 +20,9 @@ export function renderDiagram(spec: DiagramSpec, container: HTMLElement, setting
 	for (const point of spec.items['Points']) {
 		drawPoint(canvas, point);
 	}
+	for (const line of spec.items['Lines']) {
+		drawLine(canvas, line.start, line.end);
+	}
 }
 
 function drawGrid(container: HTMLElement, scale: [number, number]) {
@@ -52,4 +55,12 @@ function drawPoint(canvas: SVGSVGElement, point:Point) {
     circle.setAttribute("cx", `${point.x * 100}`);
     circle.setAttribute("cy", `${point.y * 100}`);
     circle.setAttribute("r", "0.5rem");
+}
+
+function drawLine(canvas: SVGSVGElement, start:Point, end:Point) {
+	const line = canvas.createSvg("line");
+	line.setAttribute("x1", `${start.x * 100}`);
+	line.setAttribute("y1", `${start.y * 100}`);
+	line.setAttribute("x2", `${end.x * 100}`);
+	line.setAttribute("y2", `${end.y * 100}`);
 }

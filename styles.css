@@ -14,6 +14,7 @@ If your plugin does not need CSS, delete this file.
 	border-radius: 4px;
 	position: relative;
 	height: var(--height);
+	width: var(--width);
 	overflow-y: hidden;
 	overflow-x: auto;
 	font-family: var(--font-monospace-default);
@@ -40,6 +41,17 @@ If your plugin does not need CSS, delete this file.
 	margin: 0;
 }
 
+@media print {
+	.phyfig-diagram {
+		overflow: hidden;
+		border: none;
+		padding: calc(var(--unit-length) / 2);
+	}
+	.phyfig-dotgrid {
+		margin: 0;
+	}
+}
+
 .phyfig-dot {
 	height: 0.125rem;
 	width: 0.125rem;
@@ -50,10 +62,14 @@ If your plugin does not need CSS, delete this file.
 	width: var(--width);
 	height: var(--height);
 	fill: var(--text-normal);
+	stroke: var(--text-normal);
 }
 .phyfig-canvas {
 	transform: scaleY(-1);
 }
 .phyfig-canvas > g text {
 	transform: scaleY(-1);
+}
+.phyfig-canvas line {
+	stroke-width: 0.25rem;
 }
