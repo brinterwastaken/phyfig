@@ -1,34 +1,23 @@
-import { log } from "console";
 import {
 	App,
-	Editor,
-	MarkdownView,
 	Modal,
-	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting,
 } from "obsidian";
-import { config } from "process";
+
+import { PluginSettings } from "./types/settings";
+import { parseDiagramSpec } from "parsing";
+import { renderDiagram } from "render";
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	diagramHeight: string;
-}
-
-interface DiagramSpec {
-	scale: [number, number];
-	hideDots?: boolean;
-	items?: any;
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: PluginSettings = {
 	diagramHeight: "16rem",
 };
 
 export default class PhyFigPlugin extends Plugin {
-	settings: MyPluginSettings;
+	settings: PluginSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -38,9 +27,9 @@ export default class PhyFigPlugin extends Plugin {
 			const container = el.createDiv({ cls: "phyfig-diagram" });
 			try {
 				// Parse the source code
-				const diagramSpec = this.parseDiagramSpec(source);
+				const diagramSpec = parseDiagramSpec(source);
 				// Render the diagram
-				this.renderDiagram(diagramSpec, container);
+				renderDiagram(diagramSpec, container, this.settings);
 			} catch (error) {
 				container.style.padding = '1rem'
 				container.style.color = "var(--text-error)";
@@ -49,82 +38,6 @@ export default class PhyFigPlugin extends Plugin {
 		});
 
 		this.addSettingTab(new SettingTab(this.app, this));
-	}
-
-	private parseDiagramSpec(source: string): DiagramSpec {
-		// object to store items used
-		let items:any = {};
-
-		// remove all empty lines
-		source = source.replace(/^\s*[\r\n]/gm, "");
-
-		// get lines of code
-		let lines = source.split("\n");
-		let scaleXY, hideDots;
-		for (const [lineNum, line] of lines.entries()) {
-			if (line.startsWith("@")) {
-				let configParam = line.slice(1).replace(/\s+/g, "");
-				if (configParam.startsWith("Scale")) {
-					// @Scale=10,10
-					scaleXY = Array.from(
-						configParam.split("=")[1].split(","),
-						(x) => Number(x)
-					);
-				}
-				if (configParam.startsWith("HideDots")) {
-					// @HideDots
-					hideDots = true;
-				}
-			} else {
-				let currentLine = line.replace(/\s+/g, "").split("=");
-				console.log(line.replace(/\s+/g, ""));
-				
-				if (currentLine.length == 2) {
-					items[currentLine[0]] = currentLine[1];
-				} else {
-					throw new Error(`Syntax Error at line ${lineNum}: ${line}`);
-				}
-			}
-		}
-		if (!scaleXY || scaleXY.length != 2) {
-			throw new Error("No scale specified.");
-		}
-		return {
-			scale: scaleXY as [number, number],
-			hideDots: hideDots,
-			items: items,
-		};
-	}
-
-	private drawGrid(container: HTMLElement, scale: [number, number]) {
-		const grid = container.createDiv({ cls: "phyfig-dotgrid" });
-		grid.style.width = `calc(${scale[0] + 1} * (var(--unit-length))`;
-		grid.style.height = `calc(${scale[1] + 1} * var(--unit-length))`;
-		grid.style.gridTemplateColumns = `repeat(${scale[0] + 1}, 1fr)`;
-		grid.style.gridTemplateRows = `repeat(${scale[1] + 1}, 1fr)`;
-
-		for (let i = 0; i < scale[0] + 1; i++) {
-			for (let j = 0; j < scale[1] + 1; j++) {
-				const dot = grid.createDiv({ cls: "phyfig-dot" });
-			}
-		}
-		return grid
-	}
-
-	private renderDiagram(spec: DiagramSpec, container: HTMLElement) {
-		container.style.color = "var(--text-normal)";
-		container.style.setProperty(
-			"--unit-length",
-			`calc(${this.settings.diagramHeight} / ${spec.scale[1]})`
-		);
-		container.style.setProperty("--height", this.settings.diagramHeight);
-		container.style.setProperty("--width", `calc(${spec.scale[0]} * var(--unit-length))`);
-
-		const grid = this.drawGrid(container, spec.scale);
-		if (spec.hideDots) {
-			grid.style.display = "none";
-		}
-		console.log(spec.items)
 	}
 
 	onunload() {
